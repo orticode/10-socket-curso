@@ -22,18 +22,21 @@ io.on('connection', (client) => {
 
         usuarios.agregarPersona(client.id, data.nombre, data.sala);
 
-        client.broadcast.to(data.sala).emit('listasPersonas', usuarios.getPersonasPorSala(data.sala));
+        client.broadcast.to(data.sala).emit('listaPersona', usuarios.getPersonasPorSala(data.sala));
+        client.broadcast.to(data.sala).emit('crearMensaje', crearMensaje('Administrador', `El usuario ${data.nombre} entro el chat`));
 
         return callback(usuarios.getPersonasPorSala(data.sala));
 
     });
 
-    client.on('crearMensaje', (data) => {
+    client.on('crearMensaje', (data, callback) => {
 
         let persona = usuarios.getPersona(client.id);
         let mensaje = crearMensaje(persona.nombre, data.mensaje);
 
         client.broadcast.to(persona.sala).emit('crearMensaje', mensaje);
+
+        return callback(mensaje);
 
     });
 
@@ -42,7 +45,7 @@ io.on('connection', (client) => {
         let personaBorrada = usuarios.borrarPersona(client.id);
 
         client.broadcast.to(personaBorrada.sala).emit('crearMensaje', crearMensaje('Administrador', `El usuario ${personaBorrada.nombre} abandono el chat`));
-        client.broadcast.to(personaBorrada.sala).emit('listasPersonas', usuarios.getPersonasPorSala(personaBorrada.sala));
+        client.broadcast.to(personaBorrada.sala).emit('listaPersona', usuarios.getPersonasPorSala(personaBorrada.sala));
 
         console.log('usuario desconectado -----------');
     });
